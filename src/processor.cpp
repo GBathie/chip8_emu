@@ -3,9 +3,8 @@
 #include <cassert>
 #include <fstream>
 
-Processor::Processor(): call_stack(), memory(MEMORY_SIZE_BYTES)
+Processor::Processor(): call_stack(), memory(MEMORY_SIZE_BYTES), display(SCREEN_W, SCREEN_H)
 {
-	clear_screen();
 }
 
 void Processor::load(const string &filename) 
@@ -128,7 +127,7 @@ void Processor::step()
 			break;
 		// Random
 		case 0xC:
-			reg[x] = (random() % 0xff) & nn;
+			reg[x] = (rand() % 0xff) & nn;
 			break;
 		// Display sprite
 		case 0xD:
@@ -141,9 +140,11 @@ void Processor::step()
 
 void Processor::clear_screen()
 {
-	for (int j = 0; j < SCREEN_H; ++j)
-		for (int i = 0; i < SCREEN_W; ++i)
-			(display[i][j] = 0);
+	display.clear();
+	must_draw = true;
+	// for (int j = 0; j < SCREEN_H; ++j)
+	// 	for (int i = 0; i < SCREEN_W; ++i)
+	// 		(display[i][j] = 0);
 }
 
 
@@ -226,23 +227,39 @@ void Processor::draw_sprite(uint8_t x, uint8_t y, uint8_t n)
 				break;
 			// Flip pixel if needed,
 			uint8_t b = (data >> (7-j)) & 0x1;
-			display[cx + j][cy + i] = display[cx + j][cy + i] ^ b;
-			// If zeroed, set flag to 1
-			if (b && (display[cx + j][cy + i] == 0))
+			if (b && display.flip(cx + j, cy + i))
 				reg[0xf] = 1;
+			// display[cx + j][cy + i] = display[cx + j][cy + i] ^ b;
+			// // If zeroed, set flag to 1
+			// if (b && (display[cx + j][cy + i] == 0))
+			// 	reg[0xf] = 1;
 		}
 	}
+	must_draw = true;
 }
 
-
-void Processor::print()
+void Processor::draw(SDL_Renderer *r)
 {
-	system("clear");
-	
-	for (int j = 0; j < SCREEN_H; ++j)
+	if (must_draw)
 	{
-		for (int i = 0; i < SCREEN_W; ++i)
-			cout << ((display[i][j] == 0) ? " " : "x");
-		cout << endl;
+		display.update_texture();
+		must_draw = false;
 	}
+	display.draw(r);
 }
+
+
+// void Processor::print()
+// {
+// 	if (!must_draw)
+// 		return;
+// 	must_draw = false;
+// 	system("clear");
+	
+// 	for (int j = 0; j < SCREEN_H; ++j)
+// 	{
+// 		for (int i = 0; i < SCREEN_W; ++i)
+// 			cout << ((display[i][j] == 0) ? " " : "x");
+// 		cout << "\n";
+// 	}
+// }

@@ -1,7 +1,8 @@
+# CXX := x86_64-w64-mingw64-g++.exe
 SRC = $(wildcard src/*.cpp)
 OBJS := $(SRC:.cpp=.o)
 DEPS := $(SRC:.cpp=.d)
-CXXFLAGS := -O2 -Wall -Wextra -std=c++17
+CXXFLAGS := -O2 -Wall -Wextra -std=c++17 `sdl2-config --cflags --libs`
 
 
 all: main
