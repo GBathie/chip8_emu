@@ -37,7 +37,7 @@ void App::run()
         SDL_RenderClear(renderer);
         p.draw(renderer);
         SDL_RenderPresent(renderer);
-        SDL_Delay(20);
+        SDL_Delay(10);
     }
 }
 

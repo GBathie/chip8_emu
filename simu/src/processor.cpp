@@ -133,6 +133,9 @@ void Processor::step()
 		case 0xD:
 			draw_sprite(x, y, n);
 			break;
+		// Check input
+		case 0xE:
+		case 0xF:
 		default:
 			cerr << "Unknown instruction: 0x" << hex << instr << endl;
 	}
@@ -164,13 +167,13 @@ void Processor::arithmetic_operation(uint16_t instr)
 			break;
 		// Bitwise OP
 		case 0x1:
-			reg[x] = reg[y] | reg[y];
+			reg[x] = reg[x] | reg[y];
 			break;
 		case 0x2:
-			reg[x] = reg[y] & reg[y];
+			reg[x] = reg[x] & reg[y];
 			break;
 		case 0x3:
-			reg[x] = reg[y] ^ reg[y];
+			reg[x] = reg[x] ^ reg[y];
 			break;
 		// Adition
 		case 0x4:
@@ -200,7 +203,7 @@ void Processor::arithmetic_operation(uint16_t instr)
 		case 0xE:
 			// reg[x] = reg[y]; //Old behavior
 			reg[0xf] = (reg[x] >> 7) & 0x1;
-			reg[x] = reg[x] >> 1;
+			reg[x] = reg[x] << 1;
 			break;
 		default:
 			cerr << "Unknown instruction: 0x" << hex << instr << endl;

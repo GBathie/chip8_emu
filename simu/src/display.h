@@ -19,9 +19,7 @@ public:
 	inline bool flip(int x, int y)
 	{
 		int t = x + y * width;
-		cout << "accessing at " << t  << " : " << pixels[t] << endl;
 		pixels[t] ^= 0xFFFFFF;
-		cout << "after : " << pixels[t] << endl;
 		return pixels[t] == 0;
 	}
 	void update_texture();

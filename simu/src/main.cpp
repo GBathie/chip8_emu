@@ -9,7 +9,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    App a("roms/maze.ch8");
+    App a("../roms/maze.ch8");
     // App a("roms/IBM Logo.ch8");
     a.run();
     // Processor p;
