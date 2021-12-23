@@ -2,7 +2,7 @@
 SRC = $(wildcard src/*.cpp)
 OBJS := $(SRC:.cpp=.o)
 DEPS := $(SRC:.cpp=.d)
-CXXFLAGS := -O2 -Wall -Wextra -std=c++17 `sdl2-config --cflags --libs`
+CXXFLAGS := -O2 -Wall -Wextra -std=c++17 `sdl2-config --cflags --libs` -lSDL2_mixer
 
 
 all: main

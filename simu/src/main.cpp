@@ -9,7 +9,13 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    App a("../roms/maze.ch8");
+    if (argc != 2)
+    {
+        cout << "Usage : main.exe rom_name.ch8" << endl; 
+        return 0;
+    }
+    App a(argv[1]);
+    // App a("../roms/maze.ch8");
     // App a("roms/IBM Logo.ch8");
     a.run();
     // Processor p;

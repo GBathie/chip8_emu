@@ -3,7 +3,9 @@
 #include <cassert>
 #include <fstream>
 
-Processor::Processor(): call_stack(), memory(MEMORY_SIZE_BYTES), display(SCREEN_W, SCREEN_H)
+Processor::Processor(): 
+call_stack(), memory(MEMORY_SIZE_BYTES), 
+display(SCREEN_W, SCREEN_H), keyboard()
 {
 }
 
@@ -51,6 +53,10 @@ string opcode_to_string(uint16_t opcode)
 			return "Random";
 		case 0xD:
 			return "Display Sprite";
+		case 0xE:
+			return "Keypad test";
+		case 0xF:
+			return "Other";
 		default:
 			return "Unknown";
 	}
@@ -69,8 +75,8 @@ void Processor::step()
 	uint8_t nn = instr & 0xff;
 	uint16_t nnn = instr & 0xfff;
 
-	cerr << "Executing instruction: 0x" << hex << instr << " (" << opcode_to_string(opcode) << ")" << endl;
-	cerr << "pc = " << hex << pc << endl;
+	// cerr << "Executing instruction: 0x" << hex << instr << " (" << opcode_to_string(opcode) << ")" << endl;
+	// cerr << "pc = " << hex << pc << endl;
 	switch (opcode)
 	{
 		case 0x0:
@@ -135,7 +141,12 @@ void Processor::step()
 			break;
 		// Check input
 		case 0xE:
+			key_check(instr, x);
+			break;
+		// Timers, etc
 		case 0xF:
+			handle_f(instr, x);
+			break;
 		default:
 			cerr << "Unknown instruction: 0x" << hex << instr << endl;
 	}
@@ -145,11 +156,7 @@ void Processor::clear_screen()
 {
 	display.clear();
 	must_draw = true;
-	// for (int j = 0; j < SCREEN_H; ++j)
-	// 	for (int i = 0; i < SCREEN_W; ++i)
-	// 		(display[i][j] = 0);
 }
-
 
 void Processor::arithmetic_operation(uint16_t instr)
 {
@@ -241,6 +248,71 @@ void Processor::draw_sprite(uint8_t x, uint8_t y, uint8_t n)
 	must_draw = true;
 }
 
+void Processor::key_check(uint16_t instr, uint8_t x)
+{
+	uint8_t key = reg[x] & 0xf;
+	bool is_pressed = keyboard.is_pressed(key);
+	uint16_t low = instr & 0xff;
+	if ((low == 0x9e && is_pressed)
+		|| (low == 0xa1 && !is_pressed))
+		pc += 2;
+
+	if (low != 0x9e && low != 0xa1)
+		throw runtime_error("Incorrect low value in key_check: " + to_string(low));
+}
+
+void Processor::handle_f(uint16_t instr, uint8_t x)
+{
+	uint16_t low = instr & 0xff;
+	uint8_t n;
+	int k;
+	switch (low)
+	{
+		// Timers
+		case 0x07:
+			reg[x] = delay_timer.get();
+			break;
+		case 0x15:
+			delay_timer.set(reg[x]);
+			break;
+		case 0x18:
+			sound_timer.set(reg[x]);
+			break;
+		// Get key
+		case 0x0A:
+			k = keyboard.get_pressed();
+			if (k < 0)
+				pc -= 2;
+			else
+				reg[x] = k;
+			break;
+		// Add vx to index
+		case 0x1e:
+			index += reg[x];
+			reg[0xf] = (index > 0xFFF) ? 1 : 0;
+			break;
+		// Font offset
+		case 0x29:
+			n = reg[x] & 0xF;
+			index = FONT_OFFSET + 5*n;
+			break;
+		// case 0x33:
+			// break;
+		// Write registers to memory
+		case 0x55:
+			for (int i = 0; i <= x; ++i)
+				memory.write(index + i, reg[i]);
+			break;
+		// Read registers from memory
+		case 0x65:
+			for (int i = 0; i <= x; ++i)
+				reg[i] = memory.read(index + i);
+			break;
+		default:
+			cerr << "Unknown instruction in handle_f: 0x" << hex << instr << endl;
+	}
+}
+
 void Processor::draw(SDL_Renderer *r)
 {
 	if (must_draw)
@@ -250,19 +322,3 @@ void Processor::draw(SDL_Renderer *r)
 	}
 	display.draw(r);
 }
-
-
-// void Processor::print()
-// {
-// 	if (!must_draw)
-// 		return;
-// 	must_draw = false;
-// 	system("clear");
-	
-// 	for (int j = 0; j < SCREEN_H; ++j)
-// 	{
-// 		for (int i = 0; i < SCREEN_W; ++i)
-// 			cout << ((display[i][j] == 0) ? " " : "x");
-// 		cout << "\n";
-// 	}
-// }

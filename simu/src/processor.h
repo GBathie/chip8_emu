@@ -5,7 +5,9 @@
 #include <string>
 
 #include "memory.hpp"
+#include "keyboard.h"
 #include "display.h"
+#include "timer.hpp"
 
 using namespace std;
 
@@ -25,6 +27,7 @@ public:
 	void print();
 	void draw(SDL_Renderer *r);
 
+	inline void key_update(SDL_Event &e) { keyboard.update(e); }
 	inline void init_display(SDL_Renderer *r) { display.init(r); }
 
 private:
@@ -33,13 +36,15 @@ private:
 	vector<uint16_t> call_stack;
 	Memory memory;
 	Display display;
-	// uint8_t display[SCREEN_W][SCREEN_H];
+	Keyboard keyboard;
+	Timer delay_timer;
+	SoundTimer sound_timer;
 	bool must_draw;
-	// Timer delay_timer;
-	// SoundTimer sound_timer;
 
 	void clear_screen();
 	void arithmetic_operation(uint16_t instr);
 	void draw_sprite(uint8_t x, uint8_t y, uint8_t n);
+	void key_check(uint16_t instr, uint8_t x);
+	void handle_f(uint16_t instr, uint8_t x);
 
 };
