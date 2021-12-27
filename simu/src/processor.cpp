@@ -296,8 +296,12 @@ void Processor::handle_f(uint16_t instr, uint8_t x)
 			n = reg[x] & 0xF;
 			index = FONT_OFFSET + 5*n;
 			break;
-		// case 0x33:
-			// break;
+		// Convert to decimal
+		case 0x33:
+			memory.write(index+2, reg[x] % 10);
+			memory.write(index+1, (reg[x] / 10) % 10);
+			memory.write(index, reg[x] / 100);
+			break;
 		// Write registers to memory
 		case 0x55:
 			for (int i = 0; i <= x; ++i)

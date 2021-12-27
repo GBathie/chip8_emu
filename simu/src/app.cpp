@@ -30,11 +30,17 @@ App::App(const string &s)
     cout << "App initialized" << endl;
 }
 
+// Approx 60 FPS
+constexpr Uint32 TICKS_PER_FRAME = 17;
+constexpr uint32_t MAX_STEPS_PER_FRAME = 15;
+
 void App::run()
 {
     bool quit = false;
     SDL_Event e;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    Uint32 last_ticks = 0, current_ticks;
+    uint32_t steps_per_frame = 0;
     while (!quit)
     {
 
@@ -46,11 +52,22 @@ void App::run()
                 p.key_update(e);
         }
 
-        p.step();
-        SDL_RenderClear(renderer);
-        p.draw(renderer);
-        SDL_RenderPresent(renderer);
-        // SDL_Delay(10);
+        if (steps_per_frame <= MAX_STEPS_PER_FRAME)
+        {
+            p.step();
+            ++steps_per_frame;
+        }
+
+        current_ticks = SDL_GetTicks();
+        if (current_ticks - last_ticks > TICKS_PER_FRAME)
+        {
+            SDL_RenderClear(renderer);
+            p.draw(renderer);
+            SDL_RenderPresent(renderer);
+            cerr << "Steps in one frame: " << steps_per_frame << endl;
+            steps_per_frame = 0;
+            last_ticks = SDL_GetTicks();
+        }
     }
 }
 
